@@ -83,6 +83,18 @@
   .fam b{font-size:13.5px} .fam .sizes{font-family:var(--mono);font-size:11px;color:var(--ink2);margin-top:3px}
   .pill{display:inline-block;font-size:11px;font-family:var(--mono);background:var(--panel2);border-radius:6px;padding:1px 7px;margin:2px 3px 0 0}
   .src{color:var(--ink3);font-size:12px;margin-top:30px;border-top:1px solid var(--line);padding-top:14px;line-height:1.6}
+  /* side-by-side aligned table */
+  .sidewrap{overflow-x:auto;margin:10px 0 28px;border:1px solid var(--line);border-radius:10px}
+  table.side{min-width:1240px;margin:0;font-size:12px}
+  table.side th,table.side td{padding:7px 11px;white-space:nowrap;border-bottom:1px solid var(--line)}
+  table.side thead th{position:static;text-transform:none;letter-spacing:0}
+  table.side th.grp{text-align:center;color:var(--ink);font-weight:700;font-size:12px;background:var(--panel)}
+  table.side th.sub{color:var(--ink3);text-transform:uppercase;font-size:10px;letter-spacing:.05em;font-weight:600}
+  table.side .gsep{border-left:2px solid #d3d7e0}
+  table.side td.fam{font-family:var(--mono);font-size:11.5px;color:var(--ink)}
+  table.side td.wt,table.side td.sz,table.side td.ls{font-family:var(--mono);font-size:11.5px;color:var(--ink2)}
+  table.side tbody tr:hover td{background:#f8f9fb}
+  .casetag{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.03em;background:var(--panel2);color:var(--ink3);border-radius:4px;padding:0 4px;margin-left:5px;vertical-align:middle}
 </style>
 </head>
 <body>
@@ -327,37 +339,47 @@ function flagsHTML(flags){return (flags||[]).map(f=>{const[t,c]=FLAGN[f]||[f,""]
 
 function renderSpecimens(){
   $("#legend").innerHTML = Object.values(FLAGN).map(([t,c])=>`<span class="flag ${c}">${t}</span>`).join("");
-  let h=`<div class="row head"><div>Concept</div><div>UV (original)</div><div>Dark Matter (new)</div><div>genoa (code)</div></div>`;
+  let h=`<div class="row head"><div>Concept</div><div>Dark Matter (new)</div><div>UV (original)</div><div>genoa (code)</div></div>`;
   for(const [label,uv,dm,gn,flags,note] of ORDER){
     const isNum=label.includes("number");
     h+=`<div class="row${isDep(flags)?' dep':''}">
       <div class="concept"><span class="key">${label}</span><div class="flags">${flagsHTML(flags)}</div>${note?`<div class="meta">${note}</div>`:""}</div>
-      <div class="cell">${specHTML(byName(UV,uv),isNum)}</div>
       <div class="cell">${specHTML(byName(DM,dm),isNum)}</div>
+      <div class="cell">${specHTML(byName(UV,uv),isNum)}</div>
       <div class="cell">${specHTML(byName(GENOA,gn),isNum)}</div>
     </div>`;
   }
   $("#specimens").innerHTML=h;
 }
 
+function sidePieces(o){
+  if(!o) return {fam:'<span class="dash">—</span>',wt:'<span class="dash">—</span>',sz:'<span class="dash">—</span>',ls:'<span class="dash">—</span>'};
+  let wt=o.w;
+  if(o.tc==="TITLE") wt+=' <span class="casetag">TITLE</span>';
+  else if(o.tc==="UPPER") wt+=' <span class="casetag">UPPER</span>';
+  if(o.td==="UNDERLINE") wt+=' <span class="casetag">U/LINE</span>';
+  return {fam:o.f, wt, sz:`${o.s} / ${o.lh}`, ls:o.ls};
+}
 function renderSide(){
-  let h=`<h2>Side-by-side — current → moving to</h2>
-   <p class="note">Pure values, no specimen. <b>Figma (current)</b> = UV library · <b>genoa (current)</b> = shipping code ·
-   <b>→ Moving to</b> = the Dark Matter redesign (Phase 1 target). Deprecated rows at the bottom.</p>
-   <table><thead><tr><th>Token</th><th>Figma (current · UV)</th><th>genoa (current code)</th><th>→ Moving to (Dark Matter)</th></tr></thead><tbody>`;
+  let h=`<h2>Side-by-side — values, aligned</h2>
+   <p class="note"><b>Dark Matter</b> = the redesign (moving to) · <b>UV</b> = current Figma library · <b>genoa</b> = current code.
+   <b>Size</b> shows <span class="mono">font-size / line-height</span>; <b>Letter-spacing</b> = spacing between characters (% of font size).
+   Deprecated rows at the bottom; <span class="dash">—</span> = not present in that source.</p>
+   <div class="sidewrap"><table class="side"><thead>
+     <tr><th rowspan="2">Status</th><th rowspan="2">Token</th>
+         <th class="grp gsep" colspan="4">Dark Matter (new)</th>
+         <th class="grp gsep" colspan="4">UV (original)</th>
+         <th class="grp gsep" colspan="4">genoa (code)</th></tr>
+     <tr><th class="sub gsep">Family</th><th class="sub">Weight</th><th class="sub">Size</th><th class="sub">Letter-spacing</th>
+         <th class="sub gsep">Family</th><th class="sub">Weight</th><th class="sub">Size</th><th class="sub">Letter-spacing</th>
+         <th class="sub gsep">Family</th><th class="sub">Weight</th><th class="sub">Size</th><th class="sub">Letter-spacing</th></tr>
+   </thead><tbody>`;
+  const grp=(p)=>`<td class="fam gsep">${p.fam}</td><td class="wt">${p.wt}</td><td class="sz">${p.sz}</td><td class="ls">${p.ls}</td>`;
   for(const [label,uv,dm,gn,flags] of ORDER){
-    let to;
-    if(isDep(flags)) to=`<span class="dash">⊘ deprecated — removing</span>`;
-    else if((flags||[]).includes("new")) to=`<span class="val to">🆕 new token — value TBD (badge/pill)</span>`;
-    else { const d=fmt(byName(DM,dm)); to = d?`<span class="val to">${d}</span>`:`<span class="dash">—</span>`; }
-    const uvv=fmt(byName(UV,uv)), gnv=fmt(byName(GENOA,gn));
-    h+=`<tr class="${isDep(flags)?'dep':''}">
-      <td><span class="tok">${label}</span> ${flagsHTML(flags)}</td>
-      <td>${uvv?`<span class="val">${uvv}</span>`:'<span class="dash">—</span>'}</td>
-      <td>${gnv?`<span class="val">${gnv}</span>`:'<span class="dash">—</span>'}</td>
-      <td>${to}</td></tr>`;
+    const D=sidePieces(byName(DM,dm)), U=sidePieces(byName(UV,uv)), G=sidePieces(byName(GENOA,gn));
+    h+=`<tr class="${isDep(flags)?'dep':''}"><td>${flagsHTML(flags)}</td><td><span class="tok">${label}</span></td>${grp(D)}${grp(U)}${grp(G)}</tr>`;
   }
-  h+=`</tbody></table>`;
+  h+=`</tbody></table></div>`;
   $("#tab-side").innerHTML=h;
 }
 
