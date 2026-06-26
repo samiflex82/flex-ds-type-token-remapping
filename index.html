@@ -37,9 +37,9 @@
   .sub{color:var(--ink2);font-size:13px;max-width:940px;line-height:1.5}
   .banner{margin-top:12px;display:inline-flex;gap:8px;align-items:center;background:#f3edff;border:1px solid #e0d3fb;color:#5b34bf;padding:7px 12px;border-radius:8px;font-size:12.5px}
   nav{display:flex;gap:4px;padding:12px 32px 0;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:4;flex-wrap:wrap}
-  nav button{background:none;border:0;color:var(--ink2);font:inherit;font-size:13.5px;padding:10px 14px;border-radius:8px 8px 0 0;cursor:pointer;border-bottom:2px solid transparent}
+  nav button{background:none;color:var(--ink2);font:inherit;font-size:13.5px;font-weight:600;padding:9px 16px;border:1px solid transparent;border-bottom:none;border-radius:8px 8px 0 0;cursor:pointer}
   nav button:hover{color:var(--ink)}
-  nav button.on{color:var(--accent);border-bottom-color:var(--accent);background:var(--panel);font-weight:600}
+  nav button.on{color:var(--ink);background:#fff;border-color:var(--line)}
   main{padding:24px 32px 80px;max-width:1480px}
   .tab{display:none} .tab.on{display:block}
   .legend{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 20px}
@@ -104,11 +104,6 @@
 <body>
 <header>
   <h1>Type Token Remap — Audit</h1>
-  <div class="sub">Three-way comparison of the redesign type system: <b>UV</b> (original Figma library) →
-    <b>Dark Matter</b> (manager's redesign copy) → <b>genoa</b> (shipping code). Plus a side-by-side, the
-    Phase&nbsp;1 remap, the proposed Phase&nbsp;2 taxonomy, and the <code>label-sm</code> split.</div>
-  <div class="banner">✓ Rendered in your <b>installed fonts</b> (GT Standard Trial · ABC Diatype). GT Standard
-    license pending — Trial weights <b>L Smbd / L Bd</b> shown. If a row looks like a system fallback, the font isn't installed.</div>
 </header>
 <nav id="nav"></nav>
 <main>
@@ -319,7 +314,7 @@ const MAP2 = [
 
 // ---------- render ----------
 const $ = (s,r=document)=>r.querySelector(s);
-const FLAGN = {swap:["🟣 GT Standard","f-swap"],rename:["🔁 rename","f-rename"],val:["⚠️ value change","f-val"],new:["🆕 new token","f-new"],deprecate:["⊘ deprecate","f-gone"],only:["• genoa-only","f-only"]};
+const FLAGN = {swap:["GT Standard","f-swap"],rename:["Rename","f-rename"],val:["Value Change","f-val"],new:["New Token","f-new"],deprecate:["Deprecate","f-gone"],only:["Genoa-Only","f-only"]};
 const byName=(arr,n)=>n?arr.find(x=>x.n===n):null;
 const isDep=(flags)=>(flags||[]).includes("deprecate");
 const lsPx=(ls,s)=>{if(!ls||ls==="0%"||ls==="0px")return 0;const m=parseFloat(ls);return ls.includes("%")?m/100*s:m;};
