@@ -83,10 +83,9 @@
   .fam b{font-size:13.5px} .fam .sizes{font-family:var(--mono);font-size:11px;color:var(--ink2);margin-top:3px}
   .pill{display:inline-block;font-size:11px;font-family:var(--mono);background:var(--panel2);border-radius:6px;padding:1px 7px;margin:2px 3px 0 0}
   .src{color:var(--ink3);font-size:12px;margin-top:30px;border-top:1px solid var(--line);padding-top:14px;line-height:1.6}
-  /* side-by-side aligned table */
-  .sidewrap{overflow-x:auto;margin:10px 0 28px;border:1px solid var(--line);border-radius:10px}
-  table.side{min-width:1240px;margin:0;font-size:12px}
-  table.side th,table.side td{padding:7px 11px;white-space:nowrap;border-bottom:1px solid var(--line)}
+  /* side-by-side aligned table — scrolls with the PAGE (no inner container) */
+  table.side{min-width:1500px;margin:10px 0 28px;font-size:12px;border:1px solid var(--line)}
+  table.side th,table.side td{padding:7px 11px;white-space:nowrap;border-bottom:1px solid var(--line);background:#fff}
   table.side thead th{position:static;text-transform:none;letter-spacing:0}
   table.side th.grp{text-align:center;color:var(--ink);font-weight:700;font-size:12px;background:var(--panel)}
   table.side th.sub{color:var(--ink3);text-transform:uppercase;font-size:10px;letter-spacing:.05em;font-weight:600}
@@ -94,6 +93,10 @@
   table.side td.fam{font-family:var(--mono);font-size:11.5px;color:var(--ink)}
   table.side td.wt,table.side td.sz,table.side td.ls{font-family:var(--mono);font-size:11.5px;color:var(--ink2)}
   table.side tbody tr:hover td{background:#f8f9fb}
+  /* pin Status + Token to the page's left edge while scrolling horizontally */
+  table.side .pin-a{position:sticky;left:0;z-index:3;width:160px;min-width:160px;max-width:160px;white-space:normal}
+  table.side .pin-b{position:sticky;left:160px;z-index:3;width:200px;min-width:200px;box-shadow:2px 0 0 #d3d7e0}
+  table.side thead .pin-a,table.side thead .pin-b{z-index:6;background:var(--panel)}
   .casetag{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.03em;background:var(--panel2);color:var(--ink3);border-radius:4px;padding:0 4px;margin-left:5px;vertical-align:middle}
 </style>
 </head>
@@ -229,8 +232,8 @@ const CONCEPTS = [
   ["hero-sm","","","hero.sm",["only"],"genoa-only (ABC Diatype Bold)"],
   ["hero-sm-expressive","","","hero.sm.expressive",["only"],"genoa-only (Cooper expressive)"],
   ["hero-sm-number","hero-sm-number","hero-sm-number","hero.sm.number",[],""],
-  ["page-title → page-md","page-title","page-md [DM]","page.title",["swap","rename"],"Renamed page-title→page-md + GT Standard"],
-  ["section-title → section-sm","section-title","section-sm [DM]","section.title",["swap","rename"],"Renamed section-title→section-sm + GT Standard"],
+  ["page-title","page-title","page-md [DM]","page.title",["swap"],"Keep name page-title (NOT adopting DM's page-md rename); GT Standard swap only"],
+  ["section-title","section-title","section-sm [DM]","section.title",["swap"],"Keep name section-title (NOT adopting DM's section-sm rename); GT Standard swap only"],
   ["title-number","title-number","title-number","title.number",["val"],"Size 20→18 in DM"],
   ["header-sm","header-sm","header-sm","header.sm",["swap","val"],"GT Standard + TITLE case (was ABC Medium)"],
   ["body","body","body","body",[],"Base running text"],
@@ -248,12 +251,11 @@ const CONCEPTS = [
   ["body-sm","","","body.sm",["only"],"genoa-only"],
   ["body-sm-bold","","","body.sm.bold",["only"],"genoa-only"],
   ["body-xs","","","body.xs",["only"],"genoa-only"],
-  ["label-sm → caption-sm","label-sm","label-sm","label.sm",["rename"],"SPLIT: rename to caption-sm (disclaimer/fine-print)"],
-  ["label-sm (NEW)","","","",["new"],"NEW token for tiny badge/pill labels — value TBD"],
-  ["label-sm-bold → caption-sm-bold","","","label.sm.bold",["rename"],"Cascade rename (Sami adding caption-sm-bold)"],
-  ["label-sm-hyperlink → caption-sm-hyperlink","label-sm-hyperlink","label-sm-hyperlink","label.sm.hyperlink",["rename"],"Cascade rename"],
-  ["caption","caption","caption","caption",[],""],
-  ["caption-hyperlink","caption-hyperlink","caption-hyperlink","caption.hyperlink",[],""],
+  ["label-sm → caption","label-sm","label-sm","label.sm",["rename"],"Rename to caption (disclaimer/fine-print, 12px). Small-label use → label-sm-bold."],
+  ["label-sm-bold","","","label.sm.bold",["only"],"Unchanged (genoa-only). Covers small/badge labels."],
+  ["label-sm-hyperlink","label-sm-hyperlink","label-sm-hyperlink","label.sm.hyperlink",[],"Unchanged"],
+  ["caption → caption-sm","caption","caption","caption",["rename"],"Current caption (10px) renamed → caption-sm"],
+  ["caption-hyperlink → caption-sm-hyperlink","caption-hyperlink","caption-hyperlink","caption.hyperlink",["rename"],"Renamed → caption-sm-hyperlink"],
   ["overline","overline","overline","overline",[],""],
   ["hero-lg-italic","hero-lg-italic","hero-lg-italic","hero.lg.italic",["deprecate"],"Cooper italic — deprecating"],
   ["hero-md-italic","hero-md-italic","hero-md-italic [DEPRECATE]","hero.md.italic",["deprecate"],"Cooper italic — deprecating"]
@@ -262,18 +264,19 @@ const CONCEPTS = [
 const REMAP = [
   ["hero.lg","font swap","→ GT Standard (display family). Gated on license; stage behind redesign flag."],
   ["hero.md","font swap","→ GT Standard."],
-  ["page.title","font swap","→ GT Standard. (Keep dot-name in Phase 1; rename→page-md deferred to Phase 2.)"],
-  ["section.title","font swap","→ GT Standard. (Rename→section-sm deferred to Phase 2.)"],
+  ["page.title","font swap","→ GT Standard. KEEP name page.title (NOT adopting DM's page-md rename)."],
+  ["section.title","font swap","→ GT Standard. KEEP name section.title (NOT adopting DM's section-sm rename)."],
   ["header.sm","font swap + case","→ GT Standard + TITLE case (textTransform)."],
   ["button","font swap + case","→ GT Standard + TITLE. Title-case twin lives in Figma only, not code."],
   ["button.sm","font swap + case","→ GT Standard + TITLE."],
   ["title.number","value","fontSize 20 → 18."],
   ["label","value","weight Medium → Bold."],
   ["number","value","weight Regular → Medium."],
-  ["label.sm","RENAME → caption-sm","Today's label.sm (disclaimer/fine-print) becomes caption-sm."],
-  ["label.sm.bold","RENAME → caption-sm-bold","Cascade."],
-  ["label.sm.hyperlink","RENAME → caption-sm-hyperlink","Cascade."],
-  ["label.sm (NEW)","ADD","New tiny label for badges/pills. Size/weight = OPEN design decision."],
+  ["label.sm","RENAME → caption","Today's label.sm (disclaimer/fine-print, 12px) becomes caption."],
+  ["caption","RENAME → caption-sm","Current caption (10px) becomes caption-sm."],
+  ["caption.hyperlink","RENAME → caption-sm-hyperlink","Current caption-hyperlink becomes caption-sm-hyperlink."],
+  ["label.sm.bold","keep","Unchanged (genoa-only) — covers small/badge labels."],
+  ["label.sm.hyperlink","keep","Unchanged."],
   ["hero.md.italic","deprecate","Cooper italic flagged [DEPRECATE] in DM."],
   ["hero.lg.italic","deprecate","Cooper italic — also deprecating."],
   ["—","twins: none in code","Title-case twins (hero/page/section) are Figma artifacts; not added to code."]
@@ -290,8 +293,8 @@ const TAX = [
 const MAP2 = [
   ["hero.lg","title-lg","title","GT Standard display"],
   ["hero.md","title-md","title",""],
-  ["page.title (DM: page-md)","title-sm","title","already renamed in DM"],
-  ["section.title (DM: section-sm)","heading-lg","heading",""],
+  ["page.title","title-sm","title","keeping name in Phase 1"],
+  ["section.title","heading-lg","heading","keeping name in Phase 1"],
   ["header.sm","heading-md","heading",""],
   ["body","body-lg","body",""],
   ["body.md","body-md","body",""],
@@ -302,9 +305,10 @@ const MAP2 = [
   ["label","label-lg","label",""],
   ["button","label-lg (Title Case)","label","open: own family vs label size"],
   ["button.sm","label-md","label",""],
-  ["label.sm (NEW badge/pill)","label-sm","label","new tiny label"],
-  ["label.sm (disclaimer) → caption-sm","caption-sm","caption","the label-sm split"],
-  ["caption","caption","caption",""],
+  ["label.sm.bold","label-sm + weight=bold","label","small / badge label"],
+  ["label.sm.hyperlink","label-sm + link","label",""],
+  ["label.sm (disclaimer, P1: caption)","caption","caption","fine print"],
+  ["caption (10px, P1: caption-sm)","caption-sm","caption",""],
   ["overline","caption-sm + uppercase","caption","case → prop"],
   ["number · number.bold","caption + mono feature","caption","numbers = mono feature, not a family"],
   ["title.number · hero.*.number","title-* / caption + mono feature","title · caption","numbers as a feature"],
@@ -364,9 +368,10 @@ function renderSide(){
   let h=`<h2>Side-by-side — values, aligned</h2>
    <p class="note"><b>Dark Matter</b> = the redesign (moving to) · <b>UV</b> = current Figma library · <b>genoa</b> = current code.
    <b>Size</b> shows <span class="mono">font-size / line-height</span>; <b>Letter-spacing</b> = spacing between characters (% of font size).
-   Deprecated rows at the bottom; <span class="dash">—</span> = not present in that source.</p>
-   <div class="sidewrap"><table class="side"><thead>
-     <tr><th rowspan="2">Status</th><th rowspan="2">Token</th>
+   Deprecated rows at the bottom; <span class="dash">—</span> = not present in that source.
+   Scroll the page sideways → <b>Status</b> and <b>Token</b> stay pinned.</p>
+   <table class="side"><thead>
+     <tr><th rowspan="2" class="pin-a">Status</th><th rowspan="2" class="pin-b">Token</th>
          <th class="grp gsep" colspan="4">Dark Matter (new)</th>
          <th class="grp gsep" colspan="4">UV (original)</th>
          <th class="grp gsep" colspan="4">genoa (code)</th></tr>
@@ -377,9 +382,9 @@ function renderSide(){
   const grp=(p)=>`<td class="fam gsep">${p.fam}</td><td class="wt">${p.wt}</td><td class="sz">${p.sz}</td><td class="ls">${p.ls}</td>`;
   for(const [label,uv,dm,gn,flags] of ORDER){
     const D=sidePieces(byName(DM,dm)), U=sidePieces(byName(UV,uv)), G=sidePieces(byName(GENOA,gn));
-    h+=`<tr class="${isDep(flags)?'dep':''}"><td>${flagsHTML(flags)}</td><td><span class="tok">${label}</span></td>${grp(D)}${grp(U)}${grp(G)}</tr>`;
+    h+=`<tr class="${isDep(flags)?'dep':''}"><td class="pin-a">${flagsHTML(flags)}</td><td class="pin-b"><span class="tok">${label}</span></td>${grp(D)}${grp(U)}${grp(G)}</tr>`;
   }
-  h+=`</tbody></table></div>`;
+  h+=`</tbody></table>`;
   $("#tab-side").innerHTML=h;
 }
 
