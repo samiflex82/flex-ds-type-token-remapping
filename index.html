@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Type Token Remap — Audit (DM DS Phase 1)</title>
+<style>
+  :root{
+    --bg:#0d0d0f; --panel:#17171b; --panel2:#1e1e24; --line:#2a2a32;
+    --ink:#f4f4f6; --ink2:#a9a9b6; --ink3:#6f6f7d;
+    --gt:#b794f6; --swap:#caa6ff; --twin:#ff8a8a; --rename:#7cc7ff; --val:#ffcf6b; --new:#7ee0a8;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+  header{padding:28px 32px 16px;border-bottom:1px solid var(--line);position:sticky;top:0;background:linear-gradient(180deg,#0d0d0f,#0d0d0fee);backdrop-filter:blur(6px);z-index:5}
+  h1{margin:0 0 4px;font-size:20px;letter-spacing:-.01em}
+  .sub{color:var(--ink2);font-size:13px;max-width:920px;line-height:1.5}
+  .banner{margin-top:12px;display:inline-flex;gap:8px;align-items:center;background:#241a33;border:1px solid #3a2b52;color:#d9c2ff;padding:7px 12px;border-radius:8px;font-size:12.5px}
+  nav{display:flex;gap:4px;padding:14px 32px 0;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:4}
+  nav button{background:none;border:0;color:var(--ink2);font:inherit;font-size:13.5px;padding:10px 14px;border-radius:8px 8px 0 0;cursor:pointer;border-bottom:2px solid transparent}
+  nav button:hover{color:var(--ink)}
+  nav button.on{color:var(--ink);border-bottom-color:var(--gt);background:var(--panel)}
+  main{padding:24px 32px 80px;max-width:1400px}
+  .tab{display:none} .tab.on{display:block}
+  .legend{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 20px}
+  .chip{font-size:11.5px;padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--ink2);display:inline-flex;gap:5px;align-items:center}
+  .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+  /* specimen grid */
+  .row{display:grid;grid-template-columns:230px 1fr 1fr 1fr;gap:0;border-bottom:1px solid var(--line)}
+  .row.head{position:sticky;top:96px;background:var(--bg);z-index:2;border-bottom:1px solid var(--line)}
+  .row.head>div{padding:10px 16px;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3);font-weight:600}
+  .cell{padding:16px;border-left:1px solid var(--line);min-width:0}
+  .cell:first-child{border-left:0}
+  .concept{padding:16px;display:flex;flex-direction:column;gap:7px}
+  .concept .key{font-family:var(--mono);font-size:13px;color:var(--ink)}
+  .flags{display:flex;flex-wrap:wrap;gap:5px}
+  .flag{font-size:10.5px;padding:2px 7px;border-radius:6px;font-weight:600;white-space:nowrap}
+  .f-swap{background:#2c1f44;color:var(--swap)} .f-twin{background:#3a1f22;color:var(--twin)}
+  .f-rename{background:#16303f;color:var(--rename)} .f-val{background:#3a2f15;color:var(--val)}
+  .f-new{background:#16321f;color:var(--new)} .f-gone{background:#241620;color:#d98ab0}
+  .spec{line-height:1.15;color:var(--ink);word-break:break-word}
+  .meta{margin-top:8px;font-family:var(--mono);font-size:11px;color:var(--ink3);line-height:1.5}
+  .meta b{color:var(--ink2);font-weight:600}
+  .gtfont{color:var(--gt)}
+  .empty{color:var(--ink3);font-style:italic;font-size:13px}
+  /* tables */
+  table{border-collapse:collapse;width:100%;font-size:13px;margin:8px 0 28px}
+  th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--ink3);text-transform:uppercase;font-size:11px;letter-spacing:.06em}
+  td code,.mono{font-family:var(--mono);font-size:12px}
+  td .old{color:var(--ink3)} td .arw{color:var(--gt);padding:0 6px}
+  h2{font-size:16px;margin:26px 0 6px;letter-spacing:-.01em}
+  h3{font-size:13px;margin:22px 0 2px;color:var(--ink2);text-transform:uppercase;letter-spacing:.06em}
+  p.note{color:var(--ink2);font-size:13px;line-height:1.6;max-width:900px}
+  .grid-tax{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:14px 0 24px}
+  .fam{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
+  .fam h4{margin:0 0 8px;font-size:15px}
+  .fam .sizes{font-family:var(--mono);font-size:12px;color:var(--ink2);line-height:1.8}
+  .fam .rep{font-size:12px;color:var(--ink3);margin-top:8px;line-height:1.5}
+  .pill{display:inline-block;font-size:11px;font-family:var(--mono);background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:1px 7px;margin:2px 3px 0 0}
+  .axis{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:8px 0}
+  .badge-demo{display:inline-block;background:#2c1f44;color:#e7d6ff;border-radius:999px;padding:3px 10px;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+  .src{color:var(--ink3);font-size:12px;margin-top:30px;border-top:1px solid var(--line);padding-top:14px;line-height:1.6}
+</style>
+</head>
+<body>
+<header>
+  <h1>Type Token Remap — Audit</h1>
+  <div class="sub">Three-way comparison of the redesign type system: <b>UV</b> (original Figma library) →
+    <b>Dark Matter</b> (manager's redesign copy) → <b>genoa</b> (shipping code). Plus the Phase&nbsp;1 remap,
+    the proposed Phase&nbsp;2 taxonomy, and the <code>label-sm</code> split. Mirrors the color audit page.</div>
+  <div class="banner">🟣 <b>GT Standard</b> font license pending — the Dark Matter file uses <i>GT Standard Trial</i>.
+    GT Standard isn't web-licensed, so display rows below preview in a fallback face; <b>sizes/weights/case are exact</b>, the glyphs are indicative.</div>
+</header>
+<nav id="nav"></nav>
+<main>
+  <section class="tab on" id="tab-specimens">
+    <div class="legend" id="legend"></div>
+    <div id="specimens"></div>
+  </section>
+  <section class="tab" id="tab-remap"></section>
+  <section class="tab" id="tab-tax"></section>
+  <section class="tab" id="tab-gt"></section>
+</main>
+
+<script>
+/* ============================================================================
+   ==DATA START==  (canonical source — the generator extracts this block)
+   Captured 2026-06-25 via Figma getLocalTextStylesAsync() + genoa source.
+   ========================================================================== */
+const UV = [
+  {n:"hero-lg",f:"CooperMdBT-Regular",w:"Regular",s:40,lh:48,ls:"-2%",tc:"ORIGINAL",td:"NONE"},
+  {n:"hero-lg-italic",f:"CooperMdBT-Italic",w:"Italic",s:40,lh:48,ls:"-2%",tc:"ORIGINAL",td:"NONE"},
+  {n:"hero-lg-number",f:"ABC Diatype Semi-Mono",w:"Medium",s:40,lh:56,ls:"0%",tc:"ORIGINAL",td:"NONE"},
+  {n:"hero-md",f:"CooperMdBT-Regular",w:"Regular",s:28,lh:37,ls:"-1%",tc:"ORIGINAL",td:"NONE"},
+  {n:"hero-md-italic",f:"CooperMdBT-Italic",w:"Italic",s:32,lh:37,ls:"-1%",tc:"ORIGINAL",td:"NONE"},
+  {n:"page-title",f:"ABC Diatype",w:"Bold",s:22,lh:34,ls:"-2%",tc:"ORIGINAL",td:"NONE"},
+  {n:"hero-sm-number",f:"ABC Diatype Semi-Mono",w:"Medium",s:24,lh:34,ls:"-2%",tc:"ORIGINAL",td:"NONE"},
+  {n:"section-title",f:"ABC Diatype",w:"Bold",s:18,lh:28,ls:"-2%",tc:"ORIGINAL",td:"NONE"},
+  {n:"title-number",f:"ABC Diatype Semi-Mono",w:"Medium",s:20,lh:28,ls:"-2%",tc:"ORIGINAL",td:"NONE"},
+  {n:"header-sm",f:"ABC Diatype",w:"Medium",s:16,lh:24,ls:"-1%",tc:"ORIGINAL",td:"NONE"},
+  {n:"body",f:"ABC Diatype",w:"Regular",s:16,lh:22,ls:"-1%",tc:"ORIGINAL",td:"NONE"},
+  {n:"body-input",f:"ABC Diatype",w:"Regular",s:16,lh:24,ls:"0%",tc:"ORIGINAL",td:"NONE"},
+  {n:"body-hyperlink",f:"ABC Diatype",w:"Medium",s:16,lh:22,ls:"-1%",tc:"ORIGINAL",td:"UNDERLINE"},
+  {n:"body-bold",f:"ABC Diatype",w:"Bold",s:16,lh:22,ls:"-1%",tc:"ORIGINAL",td:"NONE"},
+  {n:"label",f:"ABC Diatype",w:"Medium",s:16,lh:24,ls:"0%",tc:"ORIGINAL",td:"NONE"},
+  {n:"button",f:"ABC Diatype",w:"Bold",s:16,lh:22,ls:"-1%",tc:"ORIGINAL",td:"NONE"},
+  {n:"button-sm",f:"ABC Diatype",w:"Medium",s:14,lh:19,ls:"-1%",tc:"ORIGINAL",td:"NONE"},
+  {n:"number",f:"ABC Diatype Semi-Mono",w:"Regular",s:16,lh:24,ls:"-1%",tc:"ORIGINAL",td:"NONE"},
+  {n:"number-bold",f:"ABC Diatype Semi-Mono",w:"Bold",s:16,lh:24,ls:"-1%",tc:"ORIGINAL",td:"NONE"},
+  {n:"body-md",f:"ABC Diatype",w:"Regular",s:14,lh:19,ls:"-1%",tc:"ORIGINAL",td:"NONE"},
+  {n:"body-md-hyperlink",f:"ABC Diatype",w:"Regular",s:14,lh:19,ls:"-1%",tc:"ORIGINAL",td:"UNDERLINE"},
+  {n:"body-md-bold",f:"ABC Diatype",w:"Bold",s:14,lh:19,ls:"-1%",tc:"ORIGINAL",td:"NONE"},
+  {n:"label-sm",f:"ABC Diatype",w:"Regular",s:12,lh:16,ls:"0%",tc:"ORIGINAL",td:"NONE"},
+  {n:"label-sm-hyperlink",f:"ABC Diatype",w:"Regular",s:12,lh:16,ls:"0%",tc:"ORIGINAL",td:"UNDERLINE"},
+  {n:"caption",f:"ABC Diatype",w:"Regular",s:10,lh:14,ls:"1%",tc:"ORIGINAL",td:"NONE"},
+  {n:"caption-hyperlink",f:"ABC Diatype",w:"Regular",s:10,lh:14,ls:"1%",tc:"ORIGINAL",td:"UNDERLINE"},
+  {n:"overline",f:"ABC Diatype",w:"Regular",s:10,lh:14,ls:"10%",tc:"UPPER",td:"NONE"}
+];
+const DM = [
+  {n:"hero-lg",f:"GT Standard Trial",w:"L Smbd",s:40,lh:48,ls:"0%",tc:"ORIGINAL",td:"NONE",gt:1},
+  {n:"hero-lg-title",f:"GT Standard Trial",w:"L Smbd",s:40,lh:48,ls:"0%",tc:"TITLE",td:"NONE",gt:1,twin:1},
+  {n:"hero-lg-italic",f:"CooperMdBT-Italic",w:"Italic",s:40,lh:48,ls:"-2%",tc:"ORIGINAL",td:"NONE"},
+  {n:"hero-lg-number",f:"ABC Diatype Semi-Mono",w:"Medium",s:40,lh:56,ls:"0%",tc:"ORIGINAL",td:"NONE"},
+  {n:"hero-md",f:"GT Standard Trial",w:"L Smbd",s:28,lh:37,ls:"0%",tc:"ORIGINAL",td:"NONE",gt:1},
+  {n:"hero-md-title[DM]",f:"GT Standard Trial",w:"L Smbd",s:28,lh:37,ls:"0%",tc:"TITLE",td:"NONE",gt:1,twin:1},
+  {n:"hero-md-italic [DEPRECATE]",f:"CooperMdBT-Italic",w:"Italic",s:32,lh:37,ls:"-1%",tc:"ORIGINAL",td:"NONE",dep:1},
+  {n:"page-md [DM]",f:"GT Standard Trial",w:"L Smbd",s:22,lh:34,ls:"0%",tc:"ORIGINAL",td:"NONE",gt:1},
+  {n:"page-md-title [DM]",f:"GT Standard Trial",w:"L Smbd",s:22,lh:34,ls:"0%",tc:"TITLE",td:"NONE",gt:1,twin:1},
+  {n:"hero-sm-number",f:"ABC Diatype Semi-Mono",w:"Medium",s:24,lh:34,ls:"-2%",tc:"ORIGINAL",td:"NONE"},
+  {n:"section-sm [DM]",f:"GT Standard Trial",w:"L Smbd",s:18,lh:28,ls:"0%",tc:"ORIGINAL",td:"NONE",gt:1},
+  {n:"section-sm-title [DM]",f:"GT Standard Trial",w:"L Smbd",s:18,lh:28,ls:"0%",tc:"TITLE",td:"NONE",gt:1,twin:1},
+  {n:"title-number",f:"ABC Diatype Semi-Mono",w:"Medium",s:18,lh:28,ls:"-2%",tc:"ORIGINAL",td:"NONE"},
+  {n:"header-sm",f:"GT Standard Trial",w:"L Smbd",s:16,lh:24,ls:"0%",tc:"TITLE",td:"NONE",gt:1},
+  {n:"body",f:"ABC Diatype",w:"Regular",s:16,lh:22,ls:"-1%",tc:"ORIGINAL",td:"NONE"},
+  {n:"body-input",f:"ABC Diatype",w:"Regular",s:16,lh:24,ls:"0%",tc:"ORIGINAL",td:"NONE"},
+  {n:"body-hyperlink",f:"ABC Diatype",w:"Medium",s:16,lh:22,ls:"-1%",tc:"ORIGINAL",td:"UNDERLINE"},
+  {n:"body-bold",f:"ABC Diatype",w:"Bold",s:16,lh:22,ls:"-1%",tc:"ORIGINAL",td:"NONE"},
+  {n:"label",f:"ABC Diatype",w:"Bold",s:16,lh:24,ls:"0%",tc:"ORIGINAL",td:"NONE"},
+  {n:"button",f:"GT Standard Trial",w:"L Bd",s:16,lh:22,ls:"0%",tc:"TITLE",td:"NONE",gt:1,keepTwin:1},
+  {n:"button-sm",f:"GT Standard Trial",w:"L Smbd",s:14,lh:19,ls:"0%",tc:"TITLE",td:"NONE",gt:1},
+  {n:"number",f:"ABC Diatype Semi-Mono",w:"Medium",s:16,lh:24,ls:"-1%",tc:"ORIGINAL",td:"NONE"},
+  {n:"number-bold",f:"ABC Diatype Semi-Mono",w:"Bold",s:16,lh:24,ls:"-1%",tc:"ORIGINAL",td:"NONE"},
+  {n:"body-md",f:"ABC Diatype",w:"Regular",s:14,lh:19,ls:"-1%",tc:"ORIGINAL",td:"NONE"},
+  {n:"body-md-hyperlink",f:"ABC Diatype",w:"Regular",s:14,lh:19,ls:"-1%",tc:"ORIGINAL",td:"UNDERLINE"},
+  {n:"body-md-bold",f:"ABC Diatype",w:"Bold",s:14,lh:19,ls:"-1%",tc:"ORIGINAL",td:"NONE"},
+  {n:"label-sm",f:"ABC Diatype",w:"Regular",s:12,lh:16,ls:"0%",tc:"ORIGINAL",td:"NONE"},
+  {n:"label-sm-hyperlink",f:"ABC Diatype",w:"Regular",s:12,lh:16,ls:"0%",tc:"ORIGINAL",td:"UNDERLINE"},
+  {n:"caption",f:"ABC Diatype",w:"Regular",s:10,lh:14,ls:"1%",tc:"ORIGINAL",td:"NONE"},
+  {n:"caption-hyperlink",f:"ABC Diatype",w:"Regular",s:10,lh:14,ls:"1%",tc:"ORIGINAL",td:"UNDERLINE"},
+  {n:"overline",f:"ABC Diatype",w:"Regular",s:10,lh:14,ls:"10%",tc:"UPPER",td:"NONE"}
+];
+const GENOA = [
+  {n:"hero.lg",f:"CooperBT-Medium",w:"Regular",s:40,lh:48,ls:"-2%",tc:"ORIGINAL",td:"NONE"},
+  {n:"hero.lg.italic",f:"CooperBT-MediumItalic",w:"Italic",s:40,lh:48,ls:"-2%",tc:"ORIGINAL",td:"NONE"},
+  {n:"hero.lg.number",f:"ABCDiatypeSemi-Mono-Medium",w:"Medium",s:40,lh:42,ls:"-2%",tc:"ORIGINAL",td:"NONE"},
+  {n:"hero.md",f:"CooperBT-Medium",w:"Regular",s:28,lh:37,ls:"-2%",tc:"ORIGINAL",td:"NONE"},
+  {n:"hero.md.italic",f:"CooperBT-Medium",w:"Italic",s:32,lh:37,ls:"-2%",tc:"ORIGINAL",td:"NONE"},
+  {n:"hero.sm",f:"ABCDiatype-Bold",w:"Bold",s:32,lh:37,ls:"0%",tc:"ORIGINAL",td:"NONE",only:1},
+  {n:"hero.sm.expressive",f:"CooperBT-Medium",w:"Regular",s:32,lh:37,ls:"0%",tc:"ORIGINAL",td:"NONE",only:1},
+  {n:"hero.sm.number",f:"ABCDiatypeSemi-Mono-Medium",w:"Medium",s:24,lh:34,ls:"0%",tc:"ORIGINAL",td:"NONE"},
+  {n:"page.title",f:"ABCDiatype-Bold",w:"Bold",s:22,lh:34,ls:"-2%",tc:"ORIGINAL",td:"NONE"},
+  {n:"section.title",f:"ABCDiatype-Bold",w:"Bold",s:18,lh:28,ls:"-2%",tc:"ORIGINAL",td:"NONE"},
+  {n:"title.number",f:"ABCDiatypeSemi-Mono-Medium",w:"Medium",s:20,lh:28,ls:"-2%",tc:"ORIGINAL",td:"NONE"},
+  {n:"header.sm",f:"ABCDiatype-Medium",w:"Medium",s:16,lh:24,ls:"-1%",tc:"ORIGINAL",td:"NONE"},
+  {n:"body",f:"ABCDiatype-Regular",w:"Regular",s:16,lh:21.6,ls:"-1%",tc:"ORIGINAL",td:"NONE"},
+  {n:"body.input",f:"ABCDiatype-Regular",w:"Regular",s:16,lh:21.6,ls:"0%",tc:"ORIGINAL",td:"NONE"},
+  {n:"body.hyperlink",f:"ABCDiatype-Medium",w:"Medium",s:16,lh:21.6,ls:"-1%",tc:"ORIGINAL",td:"UNDERLINE"},
+  {n:"body.bold",f:"ABCDiatype-Bold",w:"Bold",s:16,lh:22,ls:"-1%",tc:"ORIGINAL",td:"NONE"},
+  {n:"label",f:"ABCDiatype-Medium",w:"Medium",s:16,lh:21.6,ls:"0%",tc:"ORIGINAL",td:"NONE"},
+  {n:"button",f:"ABCDiatype-Bold",w:"Bold",s:16,lh:22,ls:"-1%",tc:"ORIGINAL",td:"NONE"},
+  {n:"button.sm",f:"ABCDiatype-Medium",w:"Medium",s:14,lh:19,ls:"-1%",tc:"ORIGINAL",td:"NONE"},
+  {n:"number",f:"ABCDiatypeSemi-Mono-Regular",w:"Regular",s:16,lh:21.6,ls:"-1%",tc:"ORIGINAL",td:"NONE"},
+  {n:"number.bold",f:"ABCDiatypeSemi-Mono-Bold",w:"Bold",s:16,lh:21.6,ls:"-1%",tc:"ORIGINAL",td:"NONE"},
+  {n:"body.md",f:"ABCDiatype-Regular",w:"Regular",s:14,lh:18,ls:"-1%",tc:"ORIGINAL",td:"NONE"},
+  {n:"body.md.hyperlink",f:"ABCDiatype-Regular",w:"Regular",s:14,lh:18,ls:"-1%",tc:"ORIGINAL",td:"UNDERLINE"},
+  {n:"body.md.bold",f:"ABCDiatype-Bold",w:"Bold",s:14,lh:18,ls:"-1%",tc:"ORIGINAL",td:"NONE"},
+  {n:"body.sm",f:"ABCDiatype-Regular",w:"Regular",s:12,lh:16,ls:"-1%",tc:"ORIGINAL",td:"NONE",only:1},
+  {n:"body.sm.bold",f:"ABCDiatype-Bold",w:"Bold",s:12,lh:16,ls:"-1%",tc:"ORIGINAL",td:"NONE",only:1},
+  {n:"body.xs",f:"ABCDiatype-Regular",w:"Regular",s:10,lh:14,ls:"-1%",tc:"ORIGINAL",td:"NONE",only:1},
+  {n:"label.sm",f:"ABCDiatype-Regular",w:"Regular",s:12,lh:16.2,ls:"-1%",tc:"ORIGINAL",td:"NONE"},
+  {n:"label.sm.bold",f:"ABCDiatype-Bold",w:"Bold",s:12,lh:16.2,ls:"-1%",tc:"ORIGINAL",td:"NONE",only:1},
+  {n:"label.sm.hyperlink",f:"ABCDiatype-Regular",w:"Regular",s:12,lh:16.2,ls:"-1%",tc:"ORIGINAL",td:"UNDERLINE"},
+  {n:"caption",f:"ABCDiatype-Regular",w:"Regular",s:10,lh:13.5,ls:"-1%",tc:"ORIGINAL",td:"NONE"},
+  {n:"caption.hyperlink",f:"ABCDiatype-Regular",w:"Regular",s:10,lh:13.5,ls:"-1%",tc:"ORIGINAL",td:"UNDERLINE"},
+  {n:"overline",f:"ABCDiatype-Regular",w:"Regular",s:10,lh:13.5,ls:"10%",tc:"UPPER",td:"NONE"}
+];
+// Three-way concept join: [conceptLabel, uvName, dmName, genoaName, flags[], note]
+// flags: swap|twin|rename|val|new|gone|deprecate|only
+const CONCEPTS = [
+  ["hero-lg","hero-lg","hero-lg","hero.lg",["swap"],"Title font → GT Standard"],
+  ["hero-lg-italic","hero-lg-italic","hero-lg-italic","hero.lg.italic",[],"Cooper italic retained"],
+  ["hero-lg-number","hero-lg-number","hero-lg-number","hero.lg.number",["val"],"genoa lh 42 vs Figma 56"],
+  ["hero-md","hero-md","hero-md","hero.md",["swap"],"Title font → GT Standard"],
+  ["hero-md-italic","hero-md-italic","hero-md-italic [DEPRECATE]","hero.md.italic",["deprecate"],"Cooper italic being deprecated"],
+  ["hero-sm","","","hero.sm",["only"],"genoa-only (ABC Diatype Bold)"],
+  ["hero-sm-expressive","","","hero.sm.expressive",["only"],"genoa-only (Cooper expressive)"],
+  ["hero-sm-number","hero-sm-number","hero-sm-number","hero.sm.number",[],""],
+  ["page-title → page-md","page-title","page-md [DM]","page.title",["swap","rename"],"Renamed page-title→page-md + GT Standard"],
+  ["section-title → section-sm","section-title","section-sm [DM]","section.title",["swap","rename"],"Renamed section-title→section-sm + GT Standard"],
+  ["title-number","title-number","title-number","title.number",["val"],"Size 20→18 in DM"],
+  ["header-sm","header-sm","header-sm","header.sm",["swap","val"],"GT Standard + TITLE case (was ABC Medium)"],
+  ["body","body","body","body",[],"Base running text"],
+  ["body-input","body-input","body-input","body.input",[],""],
+  ["body-hyperlink","body-hyperlink","body-hyperlink","body.hyperlink",[],""],
+  ["body-bold","body-bold","body-bold","body.bold",[],""],
+  ["label","label","label","label",["val"],"Weight Medium→Bold in DM"],
+  ["button","button","button","button",["swap","val"],"GT Standard + TITLE case. Keep title-case twin in FIGMA ONLY"],
+  ["button-sm","button-sm","button-sm","button.sm",["swap","val"],"GT Standard + TITLE case (was ABC Medium)"],
+  ["number","number","number","number",["val"],"Weight Regular→Medium in DM"],
+  ["number-bold","number-bold","number-bold","number.bold",[],""],
+  ["body-md","body-md","body-md","body.md",[],""],
+  ["body-md-hyperlink","body-md-hyperlink","body-md-hyperlink","body.md.hyperlink",[],""],
+  ["body-md-bold","body-md-bold","body-md-bold","body.md.bold",[],""],
+  ["body-sm","","","body.sm",["only"],"genoa-only"],
+  ["body-sm-bold","","","body.sm.bold",["only"],"genoa-only"],
+  ["body-xs","","","body.xs",["only"],"genoa-only"],
+  ["label-sm → caption-sm","label-sm","label-sm","label.sm",["rename"],"SPLIT: rename to caption-sm (disclaimer/fine-print)"],
+  ["label-sm (NEW)","","","",["new"],"NEW token for tiny badge/pill labels — value TBD"],
+  ["label-sm-bold → caption-sm-bold","","","label.sm.bold",["rename","only"],"Cascade rename (genoa-derived)"],
+  ["label-sm-hyperlink → caption-sm-hyperlink","label-sm-hyperlink","label-sm-hyperlink","label.sm.hyperlink",["rename"],"Cascade rename"],
+  ["caption","caption","caption","caption",[],""],
+  ["caption-hyperlink","caption-hyperlink","caption-hyperlink","caption.hyperlink",[],""],
+  ["overline","overline","overline","overline",[],""]
+];
+// Phase 1 remap rows: [genoaKey, action, detail]
+const REMAP = [
+  ["hero.lg","font swap","→ GT Standard (display family). Gated on license; stage behind redesign flag."],
+  ["hero.md","font swap","→ GT Standard."],
+  ["page.title","font swap","→ GT Standard. (Keep dot-name in Phase 1; rename→page-md deferred to Phase 2.)"],
+  ["section.title","font swap","→ GT Standard. (Rename→section-sm deferred to Phase 2.)"],
+  ["header.sm","font swap + case","→ GT Standard + TITLE case (textTransform)."],
+  ["button","font swap + case","→ GT Standard + TITLE. Title-case twin lives in Figma only, not code."],
+  ["button.sm","font swap + case","→ GT Standard + TITLE."],
+  ["title.number","value","fontSize 20 → 18."],
+  ["label","value","weight Medium → Bold."],
+  ["number","value","weight Regular → Medium."],
+  ["label.sm","RENAME → caption-sm","Today's label.sm (disclaimer/fine-print) becomes caption-sm."],
+  ["label.sm.bold","RENAME → caption-sm-bold","Cascade."],
+  ["label.sm.hyperlink","RENAME → caption-sm-hyperlink","Cascade."],
+  ["label.sm (NEW)","ADD","New tiny label for badges/pills. Size/weight = OPEN design decision."],
+  ["hero.md.italic","deprecate","Cooper italic flagged [DEPRECATE] in DM."],
+  ["—","twins: none in code","4 title-case twins (hero/page/section) are Figma artifacts; not added to code."]
+];
+// Phase 2 taxonomy: family -> {font, sizes[], replaces, note}
+const TAX = [
+  {fam:"title",font:"GT Standard",sizes:["title-lg","title-md","title-sm"],replaces:"hero.*, page.title",note:"Brand display. The GT Standard swap lands here."},
+  {fam:"heading",font:"ABC Diatype",sizes:["heading-lg","heading-md","heading-sm"],replaces:"section.title, header.sm",note:"Section / sub headers."},
+  {fam:"body",font:"ABC Diatype",sizes:["body-lg","body-md","body-sm","body-xs"],replaces:"body.*",note:"Running text."},
+  {fam:"label",font:"ABC Diatype",sizes:["label-lg","label-md","label-sm"],replaces:"label.*, button.*, input",note:"UI affordances. NEW label-sm = badge/pill."},
+  {fam:"caption",font:"ABC Diatype / Semi-Mono",sizes:["caption","caption-sm"],replaces:"caption.*, number.*, overline",note:"Fine print / meta / numbers. Holds renamed caption-sm."}
+];
+/* ==DATA END== */
+
+// ---------- render ----------
+const $ = (s,r=document)=>r.querySelector(s);
+const FLAGN = {swap:["🟣 GT Standard","f-swap"],twin:["✂️ twin — remove","f-twin"],rename:["🔁 rename","f-rename"],val:["⚠️ value change","f-val"],new:["🆕 new token","f-new"],gone:["⊘ dropped","f-gone"],deprecate:["⊘ deprecate","f-gone"],only:["• genoa-only","f-gone"]};
+function byName(arr,n){return n?arr.find(x=>x.n===n):null;}
+function lsPx(ls,s){if(!ls||ls==="0%"||ls==="0px")return 0;const m=parseFloat(ls);return ls.includes("%")?m/100*s:m;}
+function specHTML(o){
+  if(!o) return '<div class="empty">— not present —</div>';
+  const tt = o.tc==="TITLE"?"capitalize":o.tc==="UPPER"?"uppercase":"none";
+  const fam = o.f.includes("GT Standard")?"Georgia, 'Times New Roman', serif":o.f.includes("Cooper")?"Georgia, serif":(o.f.includes("Mono")||o.f.includes("Semi-Mono"))?"var(--mono)":"var(--sans)";
+  const wght = /Bold|Bd/.test(o.w)?700:/Medium|Smbd|L Smbd/.test(o.w)?600:400;
+  const ital = /Italic/.test(o.w)?"italic":"normal";
+  const dec = o.td==="UNDERLINE"?"underline":"none";
+  const gtTag = o.gt?'<span class="gtfont">◆ GT</span> ':'';
+  const cap = Math.min(o.s,34);
+  const sty=`font-family:${fam};font-size:${cap}px;line-height:1.15;font-weight:${wght};font-style:${ital};text-transform:${tt};text-decoration:${dec};letter-spacing:${lsPx(o.ls,cap)}px`;
+  return `<div class="spec" style="${sty}">${gtTag}Pay your rent</div>
+    <div class="meta"><b>${o.n}</b><br>${o.f} · ${o.w}<br>${o.s}/${o.lh} · ls ${o.ls}${o.tc!=="ORIGINAL"?" · "+o.tc:""}${o.td!=="NONE"?" · "+o.td:""}</div>`;
+}
+function renderSpecimens(){
+  $("#legend").innerHTML = Object.entries(FLAGN).map(([k,[t,c]])=>`<span class="chip"><span class="flag ${c}">${t}</span></span>`).join("");
+  let h = `<div class="row head"><div>Concept</div><div>UV (original)</div><div>Dark Matter (new)</div><div>genoa (code)</div></div>`;
+  for(const [label,uv,dm,gn,flags,note] of CONCEPTS){
+    const fl = (flags||[]).map(f=>{const[t,c]=FLAGN[f]||[f,""];return `<span class="flag ${c}">${t}</span>`}).join("");
+    h += `<div class="row">
+      <div class="concept"><span class="key">${label}</span><div class="flags">${fl}</div>${note?`<div class="meta">${note}</div>`:""}</div>
+      <div class="cell">${specHTML(byName(UV,uv))}</div>
+      <div class="cell">${specHTML(byName(DM,dm))}</div>
+      <div class="cell">${specHTML(byName(GENOA,gn))}</div>
+    </div>`;
+  }
+  $("#specimens").innerHTML = h;
+}
+function renderRemap(){
+  let h = `<h2>Phase 1 — straight remap (low disruption)</h2>
+   <p class="note">Adopt the redesign with minimal structural churn: font swap (gated on the GT Standard license),
+   the <code>label-sm</code> split, title-case + small value nudges. <b>No taxonomy renames in code</b> —
+   dot-notation keys and names like <code>page.title</code> stay; renames are Phase 2.</p>
+   <table><thead><tr><th>genoa token</th><th>action</th><th>detail</th></tr></thead><tbody>`;
+  for(const [k,a,d] of REMAP){
+    const cls = /RENAME|ADD/.test(a)?'style="color:var(--rename)"':/swap/.test(a)?'style="color:var(--swap)"':/value/.test(a)?'style="color:var(--val)"':'';
+    h += `<tr><td><code>${k}</code></td><td ${cls}><b>${a}</b></td><td>${d}</td></tr>`;
+  }
+  h += `</tbody></table>
+   <h3>The label-sm split</h3>
+   <p class="note">Today <code>label-sm</code> (ABC Diatype Regular 12/16) is overloaded — disclaimer/fine-print
+   <i>and</i> small labels. We rename it to <code>caption-sm</code> (the disclaimer token) and add a brand-new
+   <code>label-sm</code> for tiny badge/pill labels &nbsp;<span class="badge-demo">New</span>&nbsp;(exact size/weight TBD).</p>`;
+  $("#tab-remap").innerHTML = h;
+}
+function renderTax(){
+  let h = `<h2>Phase 2 — proposed taxonomy (the 80/20)</h2>
+   <p class="note"><b>Highest-impact change:</b> a token names only <code>family + size</code>. Weight, italic and
+   hyperlink become <b>props/derived</b>, not name suffixes — collapsing ~34 styles → ~16 tokens. Second: one
+   shared size scale (<code>lg→xs</code>) across all families instead of today's three different scales.</p>
+   <div class="grid-tax">`;
+  for(const t of TAX){
+    h += `<div class="fam"><h4>${t.fam}</h4>
+      <div class="sizes">${t.sizes.map(s=>`<span class="pill">${s}</span>`).join("")}</div>
+      <div class="rep"><b>font:</b> ${t.font}<br><b>replaces:</b> ${t.replaces}<br>${t.note}</div></div>`;
+  }
+  h += `</div>
+   <h3>Axes become props, not token names</h3>
+   <div class="axis"><b>weight</b> = <span class="pill">regular</span><span class="pill">medium</span><span class="pill">bold</span> ·
+   <b>italic</b> = boolean · <b>link</b> = styling/color, not a type token · <b>numbers</b> = mono feature/variant, not a parallel <code>number.*</code> family.</div>
+   <p class="note">Result: <code>body.md.bold</code> → <code>body-md</code> + <code>weight="bold"</code>;
+   <code>label.sm.hyperlink</code> → <code>label-sm</code> + link styling. The combinatorial sprawl disappears.</p>
+   <p class="note" style="color:var(--ink3)">Phase 2 is a proposal here — not executed in Phase 1.</p>`;
+  $("#tab-tax").innerHTML = h;
+}
+function renderGT(){
+  $("#tab-gt").innerHTML = `<h2>GT Standard — font swap notes</h2>
+   <p class="note">The redesign moves the <b>title/display</b> family to <b>GT Standard</b>. License is pending —
+   the Dark Matter Figma file currently uses <i>GT Standard Trial</i> (weights seen: <code>L Smbd</code>, <code>L Bd</code>).</p>
+   <h3>Styles affected</h3>
+   <table><thead><tr><th>style</th><th>was</th><th>becomes</th></tr></thead><tbody>
+   <tr><td><code>hero-lg</code></td><td class="old">CooperMdBT-Regular</td><td class="gtfont">GT Standard L Smbd</td></tr>
+   <tr><td><code>hero-md</code></td><td class="old">CooperMdBT-Regular</td><td class="gtfont">GT Standard L Smbd</td></tr>
+   <tr><td><code>page-md</code> (was page-title)</td><td class="old">ABC Diatype Bold</td><td class="gtfont">GT Standard L Smbd</td></tr>
+   <tr><td><code>section-sm</code> (was section-title)</td><td class="old">ABC Diatype Bold</td><td class="gtfont">GT Standard L Smbd</td></tr>
+   <tr><td><code>header-sm</code></td><td class="old">ABC Diatype Medium</td><td class="gtfont">GT Standard L Smbd · TITLE</td></tr>
+   <tr><td><code>button</code></td><td class="old">ABC Diatype Bold</td><td class="gtfont">GT Standard L Bd · TITLE</td></tr>
+   <tr><td><code>button-sm</code></td><td class="old">ABC Diatype Medium</td><td class="gtfont">GT Standard L Smbd · TITLE</td></tr>
+   </tbody></table>
+   <p class="note">GT Standard styles also reset letter-spacing to <b>0%</b> (Cooper/Diatype display were −1%/−2%).
+   <b>genoa has no GT Standard today</b> — adding the family + native font registration is net-new code work, gated on the license.</p>
+   <p class="note"><b>Rendering caveat:</b> GT Standard isn't web-licensed, so the Specimens tab previews display rows in a
+   serif fallback. The metadata (family name, size, line-height, weight, case) is exact; only the glyph shapes are indicative.</p>`;
+}
+const TABS = [["specimens","Specimens (3-way)"],["remap","Phase 1 remap"],["tax","Phase 2 taxonomy"],["gt","GT Standard"]];
+$("#nav").innerHTML = TABS.map(([id,t],i)=>`<button data-t="${id}" class="${i===0?'on':''}">${t}</button>`).join("");
+$("#nav").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+  document.querySelectorAll("nav button").forEach(x=>x.classList.toggle("on",x===b));
+  document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("on",x.id==="tab-"+b.dataset.t));});
+renderSpecimens();renderRemap();renderTax();renderGT();
+</script>
+</body>
+</html>
