@@ -153,17 +153,13 @@ const UV = [
 ];
 const DM = [
   {n:"hero-lg",f:"GT Standard Trial",w:"L Smbd",s:40,lh:48,ls:"0%",tc:"ORIGINAL",td:"NONE",gt:1},
-  {n:"hero-lg-title",f:"GT Standard Trial",w:"L Smbd",s:40,lh:48,ls:"0%",tc:"TITLE",td:"NONE",gt:1,twin:1},
   {n:"hero-lg-italic",f:"CooperMdBT-Italic",w:"Italic",s:40,lh:48,ls:"-2%",tc:"ORIGINAL",td:"NONE"},
   {n:"hero-lg-number",f:"ABC Diatype Semi-Mono",w:"Medium",s:40,lh:56,ls:"0%",tc:"ORIGINAL",td:"NONE"},
   {n:"hero-md",f:"GT Standard Trial",w:"L Smbd",s:28,lh:37,ls:"0%",tc:"ORIGINAL",td:"NONE",gt:1},
-  {n:"hero-md-title[DM]",f:"GT Standard Trial",w:"L Smbd",s:28,lh:37,ls:"0%",tc:"TITLE",td:"NONE",gt:1,twin:1},
   {n:"hero-md-italic [DEPRECATE]",f:"CooperMdBT-Italic",w:"Italic",s:32,lh:37,ls:"-1%",tc:"ORIGINAL",td:"NONE",dep:1},
   {n:"page-md [DM]",f:"GT Standard Trial",w:"L Smbd",s:22,lh:34,ls:"0%",tc:"ORIGINAL",td:"NONE",gt:1},
-  {n:"page-md-title [DM]",f:"GT Standard Trial",w:"L Smbd",s:22,lh:34,ls:"0%",tc:"TITLE",td:"NONE",gt:1,twin:1},
   {n:"hero-sm-number",f:"ABC Diatype Semi-Mono",w:"Medium",s:24,lh:34,ls:"-2%",tc:"ORIGINAL",td:"NONE"},
   {n:"section-sm [DM]",f:"GT Standard Trial",w:"L Smbd",s:18,lh:28,ls:"0%",tc:"ORIGINAL",td:"NONE",gt:1},
-  {n:"section-sm-title [DM]",f:"GT Standard Trial",w:"L Smbd",s:18,lh:28,ls:"0%",tc:"TITLE",td:"NONE",gt:1,twin:1},
   {n:"title-number",f:"ABC Diatype Semi-Mono",w:"Medium",s:18,lh:28,ls:"-2%",tc:"ORIGINAL",td:"NONE"},
   {n:"header-sm",f:"GT Standard Trial",w:"L Smbd",s:16,lh:24,ls:"0%",tc:"TITLE",td:"NONE",gt:1},
   {n:"body",f:"ABC Diatype",w:"Regular",s:16,lh:22,ls:"-1%",tc:"ORIGINAL",td:"NONE"},
@@ -254,8 +250,8 @@ const CONCEPTS = [
   ["caption","caption","caption","caption",["deprecate"],"DEPRECATE → body-xs (10px regular; body-xs lh 14 vs caption 13.5)."],
   ["caption-hyperlink","caption-hyperlink","caption-hyperlink","caption.hyperlink",["deprecate"],"DEPRECATE → body-xs-hyperlink (new token)."],
   ["overline","overline","overline","overline",[],""],
-  ["hero-lg-italic","hero-lg-italic","hero-lg-italic","hero.lg.italic",["deprecate"],"Cooper italic — deprecating"],
-  ["hero-md-italic","hero-md-italic","hero-md-italic [DEPRECATE]","hero.md.italic",["deprecate"],"Cooper italic — deprecating"]
+  ["hero-lg-italic","hero-lg-italic","hero-lg-italic","hero.lg.italic",["deprecate"],"DEPRECATE → hero-lg (italic dropped). 4 consumers (welcome/value-prop)."],
+  ["hero-md-italic","hero-md-italic","hero-md-italic [DEPRECATE]","hero.md.italic",["deprecate"],"DEPRECATE → hero-md (italic dropped; 32→28). 1 consumer (ResumeOnboarding)."]
 ];
 // Phase 1 remap rows: [genoaKey, action, detail]
 const REMAP = [
@@ -276,8 +272,8 @@ const REMAP = [
   ["label.sm","keep","Stays label.sm — caption rotation dropped."],
   ["label.sm.bold","keep","Unchanged (genoa-only) — covers small/badge labels."],
   ["label.sm.hyperlink","keep","Unchanged."],
-  ["hero.md.italic","deprecate","Cooper italic flagged [DEPRECATE] in DM."],
-  ["hero.lg.italic","deprecate","Cooper italic — also deprecating."],
+  ["hero.md.italic","deprecate → hero.md","Italic dropped; 32→28. 1 consumer (ResumeOnboarding). [DS-236]"],
+  ["hero.lg.italic","deprecate → hero.lg","Italic dropped. 4 consumers (welcome/value-prop). [DS-236]"],
   ["—","twins: none in code","Title-case twins (hero/page/section) are Figma artifacts; not added to code."]
 ];
 // Phase 2 family summary: [family, font, sizes[]]
@@ -311,7 +307,7 @@ const MAP2 = [
   ["overline","body-xs + uppercase","body","open: caption family removed; case → prop"],
   ["number · number.bold","body + mono feature","body","open: caption family removed; numbers = mono feature"],
   ["title.number · hero.*.number","title-* + mono feature","title","numbers as a feature"],
-  ["hero.lg.italic · hero.md.italic","— (deprecated)","—","Cooper italics removed"]
+  ["hero.lg.italic · hero.md.italic","hero-lg / hero-md (upright)","title","Cooper italics dropped — italic removed (DS-236)"]
 ];
 /* ==DATA END== */
 
