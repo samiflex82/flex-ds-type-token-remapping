@@ -226,7 +226,7 @@ const CONCEPTS = [
   ["hero-lg-number","hero-lg-number","hero-lg-number","hero.lg.number",["val"],"genoa lh 42 vs Figma 56"],
   ["hero-md","hero-md","hero-md","hero.md",["swap"],"Title font → GT Standard"],
   ["hero-sm","","","hero.sm",["only"],"genoa-only (ABC Diatype Bold)"],
-  ["hero-sm-expressive","","","hero.sm.expressive",["only"],"genoa-only (Cooper expressive)"],
+  ["hero-sm-expressive","","","hero.sm.expressive",["only","deprecate"],"DEPRECATE → hero-sm (ABC Diatype Bold). Expressive Cooper serif removed; also removes hero.sm.expressive.italic."],
   ["hero-sm-number","hero-sm-number","hero-sm-number","hero.sm.number",[],""],
   ["page-title","page-title","page-md [DM]","page.title",["swap"],"Keep name page-title (NOT adopting DM's page-md rename); GT Standard swap only"],
   ["section-title","section-title","section-sm [DM]","section.title",["swap"],"Keep name section-title (NOT adopting DM's section-sm rename); GT Standard swap only"],
@@ -245,13 +245,14 @@ const CONCEPTS = [
   ["body-md-hyperlink","body-md-hyperlink","body-md-hyperlink","body.md.hyperlink",[],""],
   ["body-md-bold","body-md-bold","body-md-bold","body.md.bold",[],""],
   ["body-sm","","","body.sm",["only"],"genoa-only"],
-  ["body-sm-bold","","","body.sm.bold",["only"],"genoa-only"],
+  ["body-sm-bold","","","body.sm.bold",["only","deprecate"],"DEPRECATE → label-sm-bold (same 12px bold; label-sm-bold lh 16.2 vs 16)."],
   ["body-xs","","","body.xs",["only"],"genoa-only"],
-  ["label-sm → caption","label-sm","label-sm","label.sm",["rename"],"Rename to caption (disclaimer/fine-print, 12px). Small-label use → label-sm-bold."],
+  ["body-xs-hyperlink","","","body.xs.hyperlink",["new"],"New token — replaces deprecated caption-hyperlink."],
+  ["label-sm","label-sm","label-sm","label.sm",[],"Keep as-is — caption rotation dropped (captions now deprecated → body). Small-label use → label-sm-bold."],
   ["label-sm-bold","","","label.sm.bold",["only"],"Unchanged (genoa-only). Covers small/badge labels."],
   ["label-sm-hyperlink","label-sm-hyperlink","label-sm-hyperlink","label.sm.hyperlink",[],"Unchanged"],
-  ["caption → caption-sm","caption","caption","caption",["rename"],"Current caption (10px) renamed → caption-sm"],
-  ["caption-hyperlink → caption-sm-hyperlink","caption-hyperlink","caption-hyperlink","caption.hyperlink",["rename"],"Renamed → caption-sm-hyperlink"],
+  ["caption","caption","caption","caption",["deprecate"],"DEPRECATE → body-xs (10px regular; body-xs lh 14 vs caption 13.5)."],
+  ["caption-hyperlink","caption-hyperlink","caption-hyperlink","caption.hyperlink",["deprecate"],"DEPRECATE → body-xs-hyperlink (new token)."],
   ["overline","overline","overline","overline",[],""],
   ["hero-lg-italic","hero-lg-italic","hero-lg-italic","hero.lg.italic",["deprecate"],"Cooper italic — deprecating"],
   ["hero-md-italic","hero-md-italic","hero-md-italic [DEPRECATE]","hero.md.italic",["deprecate"],"Cooper italic — deprecating"]
@@ -268,9 +269,11 @@ const REMAP = [
   ["title.number","value","fontSize 20 → 18."],
   ["label","value","weight Medium → Bold."],
   ["number","value","weight Regular → Medium."],
-  ["label.sm","RENAME → caption","Today's label.sm (disclaimer/fine-print, 12px) becomes caption."],
-  ["caption","RENAME → caption-sm","Current caption (10px) becomes caption-sm."],
-  ["caption.hyperlink","RENAME → caption-sm-hyperlink","Current caption-hyperlink becomes caption-sm-hyperlink."],
+  ["body.sm.bold","deprecate","→ label.sm.bold (same 12px bold; label.sm.bold lh 16.2 vs 16)."],
+  ["caption","deprecate","→ body.xs (10px regular; lh 13.5 → 14)."],
+  ["caption.hyperlink","deprecate","→ body.xs.hyperlink (new token; current caption.hyperlink has 0 usages)."],
+  ["hero.sm.expressive","deprecate","→ hero.sm (ABC Diatype Bold). Expressive Cooper serif removed; also removes hero.sm.expressive.italic."],
+  ["label.sm","keep","Stays label.sm — caption rotation dropped."],
   ["label.sm.bold","keep","Unchanged (genoa-only) — covers small/badge labels."],
   ["label.sm.hyperlink","keep","Unchanged."],
   ["hero.md.italic","deprecate","Cooper italic flagged [DEPRECATE] in DM."],
@@ -282,8 +285,8 @@ const TAX = [
   ["title","GT Standard",["title-lg","title-md","title-sm"]],
   ["heading","ABC Diatype",["heading-lg","heading-md","heading-sm"]],
   ["body","ABC Diatype",["body-lg","body-md","body-sm","body-xs"]],
-  ["label","ABC Diatype",["label-lg","label-md","label-sm"]],
-  ["caption","ABC Diatype / Semi-Mono",["caption","caption-sm"]]
+  ["label","ABC Diatype",["label-lg","label-md","label-sm"]]
+  // caption family removed — captions deprecated into body (overline / number.* P2 home open)
 ];
 // Phase 2 before→after: [today, phase2, family, note]
 const MAP2 = [
@@ -303,11 +306,11 @@ const MAP2 = [
   ["button.sm","label-md","label",""],
   ["label.sm.bold","label-sm + weight=bold","label","small / badge label"],
   ["label.sm.hyperlink","label-sm + link","label",""],
-  ["label.sm (disclaimer, P1: caption)","caption","caption","fine print"],
-  ["caption (10px, P1: caption-sm)","caption-sm","caption",""],
-  ["overline","caption-sm + uppercase","caption","case → prop"],
-  ["number · number.bold","caption + mono feature","caption","numbers = mono feature, not a family"],
-  ["title.number · hero.*.number","title-* / caption + mono feature","title · caption","numbers as a feature"],
+  ["label.sm (disclaimer)","label-sm","label","fine print — stays label-sm (caption rotation dropped)"],
+  ["caption (deprecated)","body-xs","body","→ body-xs in P1; caption family removed"],
+  ["overline","body-xs + uppercase","body","open: caption family removed; case → prop"],
+  ["number · number.bold","body + mono feature","body","open: caption family removed; numbers = mono feature"],
+  ["title.number · hero.*.number","title-* + mono feature","title","numbers as a feature"],
   ["hero.lg.italic · hero.md.italic","— (deprecated)","—","Cooper italics removed"]
 ];
 /* ==DATA END== */
@@ -387,7 +390,7 @@ function renderSide(){
 function renderRemap(){
   let h=`<h2>Phase 1 — straight remap (low disruption)</h2>
    <p class="note">Adopt the redesign with minimal structural churn: font swap (gated on the GT Standard license),
-   the <code>label-sm</code> split, title-case + small value nudges. <b>No taxonomy renames in code</b> —
+   token deprecations (below), title-case + small value nudges. <b>No taxonomy renames in code</b> —
    dot-notation keys and names like <code>page.title</code> stay; renames are Phase 2.</p>
    <table><thead><tr><th>genoa token</th><th>action</th><th>detail</th></tr></thead><tbody>`;
   for(const [k,a,d] of REMAP){
@@ -395,11 +398,14 @@ function renderRemap(){
     h+=`<tr><td><span class="tok">${k}</span></td><td ${cls}><b>${a}</b></td><td>${d}</td></tr>`;
   }
   h+=`</tbody></table>
-   <h3>The label-sm / caption restructure</h3>
-   <p class="note">Today <code>label-sm</code> (ABC Diatype Regular 12/16) is overloaded — disclaimer/fine-print
-   <i>and</i> small labels. We rotate the caption naming: <code>label-sm</code> (12px disclaimer) → <code>caption</code>;
-   current <code>caption</code> (10px) → <code>caption-sm</code>; <code>caption-hyperlink</code> → <code>caption-sm-hyperlink</code>.
-   <b>No new <code>label-sm</code></b> — <code>label-sm-bold</code> (kept) covers small/badge labels;
+   <h3>Token deprecations (DS-225)</h3>
+   <p class="note">Three styles are deprecated and their consumers moved to existing tokens:
+   <code>body-sm-bold</code> → <code>label-sm-bold</code> (same 12px bold);
+   <code>caption</code> → <code>body-xs</code> and <code>caption-hyperlink</code> → <code>body-xs-hyperlink</code> (new token),
+   moving fine print onto the <code>body</code> scale for text ≤16px;
+   <code>hero-sm-expressive</code> → <code>hero-sm</code> (the expressive Cooper serif is dropped for ABC Diatype Bold).
+   The earlier <code>label-sm</code>→<code>caption</code> rotation is <b>dropped</b>: <code>label-sm</code> stays
+   <code>label-sm</code>, and the Phase 2 caption family is removed (<code>overline</code> / <code>number.*</code> home is an open Phase 2 question).
    <code>label-sm-bold</code> and <code>label-sm-hyperlink</code> are left as-is.</p>
    <div class="callout"><b>Title-case rule (eng subissue under DS-225):</b> titles, buttons <b>and labels</b> are
    title-cased when they're ≤ 4 words. Implement a title-case helper with exceptions — minor words (a, the, of, to…),
